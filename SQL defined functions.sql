@@ -1,0 +1,66 @@
+--EXAMPLES OF SCALAR FUNCTIONS
+--SCALAR FUNCTONS CAN TAKE IN MULTIPLE PARAMETERS BUT
+--RETURN ONE PARAMETER
+--USING IN BUILT FUNCTIONS
+SELECT SQUARE(30) AS SQUARES
+--CREATE A USER DEFINED FUNCTION
+CREATE FUNCTION CustomSquare(@num INT)
+RETURNS INT
+AS
+BEGIN
+RETURN @num * @num
+END
+--USING USER DEFINED FUNCTION
+SELECT dbo.CustomSquare(30) As NumberSquare
+
+--CREATE A USER DEFINED FUNCTION TO CALCULATE AGE BASED ON DATE PASSED
+CREATE FUNCTION calculateAge (@dob DATE)
+RETURNS INT
+AS
+BEGIN
+RETURN DATEDIFF(YEAR, @dob, GETDATE())
+END
+
+--DISPLAY CALCUALTED AGE
+SELECT dbo.calculateAge('11/10/1998') AS CalculatedAge
+
+CREATE TABLE Trainees(id INT, userId INT, fullName VARCHAR(100), dob DATE)
+
+--CREATE STORED PROCEDURE TO INSERT TRAINEE
+CREATE PROCEDURE sp_insertTrainee(@fullname VARCHAR(100), @date DATE)
+AS
+BEGIN
+INSERT INTO Trainees(fullName, dob) VALUES(@fullname, @date)
+END
+
+--INSERT NEW ROWS USING THE STORED PROCEDURE
+EXECUTE sp_insertTrainee @fullname='Christian', @date='11/02/2005'
+EXECUTE sp_insertTrainee @fullname='Joshua', @date='03/02/1998'
+EXECUTE sp_insertTrainee @fullname='Elias', @date='01/06/1999'
+EXECUTE sp_insertTrainee @fullname='John', @date='21/02/2000'
+
+--DISPLAY TRAINEE TABLE
+SELECT * FROM Trainees
+
+CREATE FUNCTION selectTrainees(@age INT)
+RETURNS TABLE
+AS
+RETURN SELECT fullName, dbo.calculateAge(dob) as age FROM Trainees WHERE dbo.calculateAge(dob) > @age
+
+--DISPLAY TRAINEE TABLE
+SELECT * FROM Trainees
+SELECT * FROM dbo.selectTrainees(18)
+
+--MULTI TABLED VALUE STRUCTURE
+CREATE OR ALTER FUNCTION selectTraineesAlt(@age INT)
+RETURNS @Table TABLE(Fullnames VARCHAR(100), id INT, userId INT, age INT)
+AS
+BEGIN
+INSERT INTO @Table
+SELECT fullName, id, userId, dbo.calculateAge(dob) as asge FROM Trainees WHERE dbo.calculateAge(dob) > @age
+RETURN
+END
+
+--DISPLAY TRAINEE TABLE
+SELECT * FROM Trainees
+SELECT * FROM dbo.selectTraineesAlt(10)
